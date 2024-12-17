@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from requestBody import GetTableByMajor
 app = FastAPI()
 
 # CORS 配置
@@ -42,6 +43,17 @@ async def getAllTable():
     
     # 返回 JSON 格式的响应
     return JSONResponse(content=result)
+
+@app.post("/getTableByMajor")
+async def getTableByMajor(request: GetTableByMajor):
+    major = request.major
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM course_schedule WHERE Studensname LIKE ?;", (f"%{major}%",))
+    rows = cursor.fetchall()
+    cursor.close()
+    conn.close()
+    return JSONResponse(content=[dict(row) for row in rows])
 
 # 运行应用程序
 if __name__ == "__main__":
